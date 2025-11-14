@@ -7,14 +7,28 @@ class GraphBuilder:
     def __init__(self, config: Config, fetcher: DependencyFetcher):
         self.config = config
         self.fetcher = fetcher
-        self.visited: Set[str] = set()  # Для отслеживания посещенных пакетов в текущем пути
+        self.visited: Set[str] = set()
         self.cycles_detected: Set[str] = set()
     
     def build_dependency_graph(self) -> DependencyGraph:
+        if self.config.test_mode and self.config.reverse:
+            all_packages = self.fetcher.load_entire_test_repository()
+            root_package = all_packages.get(self.config.package_name)
+            if not root_package:
+                root_package = Package(
+                    name=self.config.package_name,
+                    version=self.config.version,
+                    dependencies=[]
+                )
+            graph = DependencyGraph(root_package=root_package)
+            for package in all_packages.values():
+                graph.add_package(package)
+            return graph
+        
         root_package = self.fetcher.fetch_dependencies()
         graph = DependencyGraph(root_package=root_package)
         graph.add_package(root_package)
-
+        
         self._bfs_with_recursion(root_package.name, graph, current_depth=0)
         
         return graph
@@ -58,3 +72,10 @@ class GraphBuilder:
             self._bfs_with_recursion(dependency_name, graph, current_depth + 1)
         
         self.visited.remove(package_name)
+    
+    def find_reverse_dependencies(self, graph: DependencyGraph, target_package: str) -> List[str]:
+        reverse_deps = []
+        for package_name, package in graph.all_packages.items():
+            if target_package in package.dependencies:
+                reverse_deps.append(package_name)
+        return reverse_deps

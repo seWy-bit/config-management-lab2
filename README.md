@@ -1,12 +1,11 @@
 # Dependency Visualizer
 
-Инструмент визуализации графа зависимостей для менеджера пакетов Python (pip).
-
 ## Вариант №18
 
 ### Этап 1: Минимальный прототип с конфигурацией ✅
 ### Этап 2: Сбор данных ✅  
 ### Этап 3: Основные операции ✅
+### Этап 4: Дополнительные операции ✅
 
 Реализовано:
 - CLI конфигурация через аргументы командной строки
@@ -15,7 +14,8 @@
 - Построение графа зависимостей с помощью BFS с рекурсией
 - Учет максимальной глубины анализа
 - Обнаружение и обработка циклических зависимостей
-- Нормализация имен пакетов (замена подчеркиваний на дефисы)
+- Нормализация имен пакетов
+- Вывод обратных зависимостей для заданного пакета
 
 ### Использование
 
@@ -23,8 +23,8 @@
 # Построение графа для реального пакета
 python src/main.py --package requests --repository https://pypi.org/simple/ --max-depth 2
 
-# Тестовый режим с графом
-python src/main.py --package A --repository tests/test_data/graph_test.txt --test-mode --max-depth 5
+# Режим обратных зависимостей
+python src/main.py --package urllib3 --repository https://pypi.org/simple/ --max-depth 2 --reverse
 
-# С указанием версии
-python src/main.py --package django --repository https://pypi.org/simple/ --version 4.2.0 --max-depth 3
+# Тестовый режим с обратными зависимостями
+python src/main.py --package D --repository tests/test_data/reverse_test.txt --test-mode --reverse

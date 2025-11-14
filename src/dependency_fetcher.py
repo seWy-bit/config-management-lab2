@@ -33,30 +33,46 @@ class DependencyFetcher:
     def _fetch_from_test_repository(self) -> Package:
         try:
             with open(self.config.repository, 'r', encoding='utf-8') as f:
-                # Ищем строку, начинающуюся с имени нашего пакета
-                target_package = self.config.package_name
-                
                 for line in f:
                     line = line.strip()
                     if line and not line.startswith('#'):
                         parts = line.split()
-                        if parts[0] == target_package:
+                        if parts[0] == self.config.package_name:
                             dependencies = parts[1:] if len(parts) > 1 else []
                             return Package(
-                                name=target_package,
+                                name=self.config.package_name,
                                 version=self.config.version,
                                 dependencies=dependencies
                             )
                 
-                # Если пакет не найден, возвращаем пустой
                 return Package(
-                    name=target_package,
+                    name=self.config.package_name,
                     version=self.config.version,
                     dependencies=[]
                 )
                 
         except Exception as e:
             raise Exception(f"Ошибка чтения тестового репозитория: {e}")
+
+    def load_entire_test_repository(self) -> Dict[str, Package]:
+        packages = {}
+        try:
+            with open(self.config.repository, 'r', encoding='utf-8') as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith('#'):
+                        parts = line.split()
+                        package_name = parts[0]
+                        dependencies = parts[1:] if len(parts) > 1 else []
+                        packages[package_name] = Package(
+                            name=package_name,
+                            version='latest',
+                            dependencies=dependencies
+                        )
+        except Exception as e:
+            raise Exception(f"Ошибка чтения тестового репозитория: {e}")
+        
+        return packages
     
     def _fetch_from_pypi(self) -> Package:
         package_name = self.config.package_name

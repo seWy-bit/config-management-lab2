@@ -7,41 +7,12 @@ def parse_arguments() -> Dict[str, Any]:
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
     
-    # Обязательные параметры
-    parser.add_argument(
-        '--package',
-        type=str,
-        required=True,
-        help='Имя анализируемого пакета'
-    )
-    
-    parser.add_argument(
-        '--repository',
-        type=str,
-        required=True,
-        help='URL-адрес репозитория или путь к файлу тестового репозитория'
-    )
-    
-    # Опциональные параметры
-    parser.add_argument(
-        '--test-mode',
-        action='store_true',
-        help='Режим работы с тестовым репозиторием'
-    )
-    
-    parser.add_argument(
-        '--version',
-        type=str,
-        default='latest',
-        help='Версия пакета (по умолчанию: latest)'
-    )
-    
-    parser.add_argument(
-        '--max-depth',
-        type=int,
-        default=10,
-        help='Максимальная глубина анализа зависимостей (по умолчанию: 10)'
-    )
+    parser.add_argument('--package', type=str, required=True, help='Имя анализируемого пакета')
+    parser.add_argument('--repository', type=str, required=True, help='URL или путь к файлу')
+    parser.add_argument('--test-mode', action='store_true', help='Режим тестирования')
+    parser.add_argument('--version', type=str, default='latest', help='Версия пакета')
+    parser.add_argument('--max-depth', type=int, default=10, help='Максимальная глубина')
+    parser.add_argument('--reverse', action='store_true', help='Режим вывода обратных зависимостей')
     
     args = parser.parse_args()
     
@@ -50,5 +21,6 @@ def parse_arguments() -> Dict[str, Any]:
         'repository': args.repository,
         'test_mode': args.test_mode,
         'version': args.version,
-        'max_depth': args.max_depth
+        'max_depth': args.max_depth,
+        'reverse': args.reverse
     }

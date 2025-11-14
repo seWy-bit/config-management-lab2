@@ -1,7 +1,6 @@
 import sys
 import os
 
-# Добавляем путь к src в PYTHONPATH
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from src.cli import parse_arguments
@@ -11,19 +10,15 @@ from src.graph_builder import GraphBuilder
 
 def main():
     try:
-        # Парсим аргументы командной строки
         args_dict = parse_arguments()
         
-        # Создаем и валидируем конфигурацию
         config = Config(args_dict)
         
-        # ВЫВОД ПАРАМЕТРОВ (требование этапа 1)
         print("=== Параметры конфигурации ===")
         for key, value in config.to_dict().items():
             print(f"{key}: {value}")
         print("==============================")
         
-        # ЭТАП 2: Получение прямых зависимостей
         print(f"\n=== Получение зависимостей для {config.package_name} ===")
         
         fetcher = DependencyFetcher(config)
@@ -36,13 +31,11 @@ def main():
         else:
             print("  Зависимости не найдены")
         
-        # ЭТАП 3: Построение полного графа зависимостей
         print(f"\n=== Построение графа зависимостей (макс. глубина: {config.max_depth}) ===")
         
         graph_builder = GraphBuilder(config, fetcher)
         graph = graph_builder.build_dependency_graph()
         
-        # Выводим результаты
         print(f"Всего пакетов в графе: {len(graph.all_packages)}")
         print(f"Транзитивные зависимости: {len(graph.get_all_dependencies())}")
         
@@ -51,7 +44,17 @@ def main():
         else:
             print("Циклические зависимости не обнаружены")
         
-        # Демонстрация работы с тестовым репозиторием
+        if config.reverse:
+            print(f"\n=== Обратные зависимости для {config.package_name} ===")
+            reverse_deps = graph_builder.find_reverse_dependencies(graph, config.package_name)
+            if reverse_deps:
+                print(f"Пакеты, зависящие от {config.package_name}:")
+                for i, dep in enumerate(reverse_deps, 1):
+                    print(f"  {i}. {dep}")
+            else:
+                print(f"Нет пакетов, зависящих от {config.package_name}")
+            print("==============================")
+        
         if config.test_mode:
             print(f"\n=== Режим тестирования ===")
             print("Граф успешно построен из тестового файла")
