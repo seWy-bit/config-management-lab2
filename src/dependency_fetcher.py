@@ -1,42 +1,60 @@
 import os
 import re
 import requests
-from typing import List, Optional
+from typing import List, Optional, Dict
 from urllib.parse import urljoin
 
 from src.models import Package
 from src.config import Config
 
 class DependencyFetcher:
-    """Класс для получения информации о зависимостях Python-пакетов"""
-    
     def __init__(self, config: Config):
         self.config = config
         self.session = requests.Session()
         self.session.headers.update({
             'User-Agent': 'DependencyVisualizer/1.0'
         })
+        self.cache: Dict[str, Package] = {}  # Кеш для избежания повторных запросов
     
     def fetch_dependencies(self) -> Package:
+        cache_key = f"{self.config.package_name}_{self.config.version}"
+        
+        if cache_key in self.cache:
+            return self.cache[cache_key]
+        
         if self.config.test_mode:
-            return self._fetch_from_test_repository()
+            result = self._fetch_from_test_repository()
         else:
-            return self._fetch_from_pypi()
+            result = self._fetch_from_pypi()
+        
+        self.cache[cache_key] = result
+        return result
     
     def _fetch_from_test_repository(self) -> Package:
         try:
             with open(self.config.repository, 'r', encoding='utf-8') as f:
-                dependencies = []
+                # Ищем строку, начинающуюся с имени нашего пакета
+                target_package = self.config.package_name
+                
                 for line in f:
                     line = line.strip()
-                    if line and not line.startswith('#'):  # Игнорируем пустые строки и комментарии
-                        dependencies.append(line)
+                    if line and not line.startswith('#'):
+                        parts = line.split()
+                        if parts[0] == target_package:
+                            dependencies = parts[1:] if len(parts) > 1 else []
+                            return Package(
+                                name=target_package,
+                                version=self.config.version,
+                                dependencies=dependencies
+                            )
                 
+                # Если пакет не найден, возвращаем пустой
                 return Package(
-                    name=self.config.package_name,
+                    name=target_package,
                     version=self.config.version,
-                    dependencies=dependencies
+                    dependencies=[]
                 )
+                
         except Exception as e:
             raise Exception(f"Ошибка чтения тестового репозитория: {e}")
     
@@ -45,7 +63,6 @@ class DependencyFetcher:
         version = self.config.version if self.config.version != 'latest' else None
         
         try:
-            # Получаем информацию о пакете
             if version:
                 url = f"https://pypi.org/pypi/{package_name}/{version}/json"
             else:
@@ -57,7 +74,6 @@ class DependencyFetcher:
             package_data = response.json()
             info = package_data['info']
             
-            # Извлекаем зависимости
             dependencies = self._extract_dependencies(info)
             
             return Package(
@@ -73,34 +89,31 @@ class DependencyFetcher:
     
     def _extract_dependencies(self, package_info: dict) -> List[str]:
         dependencies = []
-        
-        # Зависимости указываются в requires_dist
         requires_dist = package_info.get('requires_dist', [])
         
+        # ЗАЩИТА ОТ None
+        if requires_dist is None:
+            requires_dist = []
+        
         for requirement in requires_dist:
-            # Извлекаем имя пакета из строки требования
-            # Форматы: "package", "package>=1.0", "package[extra]"
             package_name = self._parse_requirement(requirement)
             if package_name and package_name not in dependencies:
                 dependencies.append(package_name)
         
         return dependencies
     
-    def _parse_requirement(self, requirement: str) -> Optional[str]:
-        # Убираем пробелы
+    def _parse_requirement(self, requirement: str):
         requirement = requirement.strip()
         
-        # Разделяем по операторам сравнения
         for operator in ['==', '!=', '<=', '>=', '<', '>', '~=']:
             if operator in requirement:
                 requirement = requirement.split(operator)[0].strip()
         
-        # Убираем extras [something]
         if '[' in requirement:
             requirement = requirement.split('[')[0].strip()
         
-        # Проверяем, что осталось валидное имя пакета
         if requirement and re.match(r'^[a-zA-Z0-9-_\.]+$', requirement):
+            requirement = requirement.replace('_', '-')
             return requirement
         
         return None

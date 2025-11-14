@@ -5,22 +5,26 @@
 ## Вариант №18
 
 ### Этап 1: Минимальный прототип с конфигурацией ✅
-### Этап 2: Сбор данных ✅
+### Этап 2: Сбор данных ✅  
+### Этап 3: Основные операции ✅
 
 Реализовано:
-- Получение информации о зависимостях из PyPI через API
-- Поддержка тестового режима с чтением из файла
-- Извлечение и парсинг прямых зависимостей
-- Вывод списка прямых зависимостей на экран
+- CLI конфигурация через аргументы командной строки
+- Получение информации о зависимостях из PyPI API
+- Поддержка тестового режима с файловыми репозиториями
+- Построение графа зависимостей с помощью BFS с рекурсией
+- Учет максимальной глубины анализа
+- Обнаружение и обработка циклических зависимостей
+- Нормализация имен пакетов (замена подчеркиваний на дефисы)
 
 ### Использование
 
 ```bash
-# Режим работы с реальным репозиторием (PyPI)
-python src/main.py --package requests --repository https://pypi.org/simple/
+# Построение графа для реального пакета
+python src/main.py --package requests --repository https://pypi.org/simple/ --max-depth 2
+
+# Тестовый режим с графом
+python src/main.py --package A --repository tests/test_data/graph_test.txt --test-mode --max-depth 5
 
 # С указанием версии
-python src/main.py --package django --repository https://pypi.org/simple/ --version 4.2.0
-
-# Тестовый режим
-python src/main.py --package TEST --repository tests/test_data/test_repo.txt --test-mode
+python src/main.py --package django --repository https://pypi.org/simple/ --version 4.2.0 --max-depth 3
