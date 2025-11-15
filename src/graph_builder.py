@@ -11,7 +11,7 @@ class GraphBuilder:
         self.cycles_detected: Set[str] = set()
     
     def build_dependency_graph(self) -> DependencyGraph:
-        if self.config.test_mode and self.config.reverse:
+        if self.config.test_mode and self.config.output:
             all_packages = self.fetcher.load_entire_test_repository()
             root_package = all_packages.get(self.config.package_name)
             if not root_package:
@@ -25,6 +25,20 @@ class GraphBuilder:
                 graph.add_package(package)
             return graph
         
+        if self.config.test_mode and self.config.reverse:
+            all_packages = self.fetcher.load_entire_test_repository()
+            root_package = all_packages.get(self.config.package_name)
+            if not root_package:
+                root_package = Package(
+                    name=self.config.package_name,
+                    version=self.config.version,
+                    dependencies=[]
+                )
+            graph = DependencyGraph(root_package=root_package)
+            for package in all_packages.values():
+                graph.add_package(package)
+            return graph
+
         root_package = self.fetcher.fetch_dependencies()
         graph = DependencyGraph(root_package=root_package)
         graph.add_package(root_package)

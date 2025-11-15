@@ -7,6 +7,7 @@ from src.cli import parse_arguments
 from src.config import Config
 from src.dependency_fetcher import DependencyFetcher
 from src.graph_builder import GraphBuilder
+from src.d2_visualizer import D2Visualizer
 
 def main():
     try:
@@ -53,6 +54,27 @@ def main():
                     print(f"  {i}. {dep}")
             else:
                 print(f"Нет пакетов, зависящих от {config.package_name}")
+            print("==============================")
+        
+        if config.output:
+            print(f"\n=== Визуализация графа зависимостей ===")
+            visualizer = D2Visualizer()
+            
+            d2_code = visualizer.generate_d2_code(graph)
+            print("Сгенерирован код D2:")
+            print(d2_code)
+            
+            filename = config.output or config.package_name
+            d2_path = visualizer.save_d2_file(d2_code, filename)
+            print(f"D2 файл сохранен: {d2_path}")
+            
+            try:
+                svg_path = visualizer.render_svg(d2_path, filename)
+                visualizer.display_svg_info(svg_path)
+            except Exception as e:
+                print(f"Ошибка визуализации: {e}")
+                print("Установите D2: https://github.com/terrastruct/d2")
+            
             print("==============================")
         
         if config.test_mode:

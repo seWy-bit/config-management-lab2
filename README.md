@@ -6,6 +6,7 @@
 ### Этап 2: Сбор данных ✅  
 ### Этап 3: Основные операции ✅
 ### Этап 4: Дополнительные операции ✅
+### Этап 5: Визуализация ✅
 
 Реализовано:
 - CLI конфигурация через аргументы командной строки
@@ -16,15 +17,22 @@
 - Обнаружение и обработка циклических зависимостей
 - Нормализация имен пакетов
 - Вывод обратных зависимостей для заданного пакета
+- Визуализация графа с использованием языка D2
+- Сохранение SVG изображений
+- Автоматическое открытие в браузере
+
+### Требования
+- Python 3.7+
+- Утилита D2 для визуализации: https://github.com/terrastruct/d2
 
 ### Использование
 
 ```bash
-# Построение графа для реального пакета
+# Базовое построение графа
 python src/main.py --package requests --repository https://pypi.org/simple/ --max-depth 2
 
-# Режим обратных зависимостей
-python src/main.py --package urllib3 --repository https://pypi.org/simple/ --max-depth 2 --reverse
+# Визуализация с сохранением в файл
+python src/main.py --package requests --repository https://pypi.org/simple/ --output requests_graph
 
-# Тестовый режим с обратными зависимостями
-python src/main.py --package D --repository tests/test_data/reverse_test.txt --test-mode --reverse
+# Тестовый режим с визуализацией
+python src/main.py --package A --repository tests/test_data/reverse_test.txt --test-mode --output test_graph

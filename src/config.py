@@ -10,6 +10,7 @@ class Config:
         self.version = config_dict['version']
         self.max_depth = config_dict['max_depth']
         self.reverse = config_dict['reverse']
+        self.output = config_dict['output']
         
         self._validate()
     
@@ -18,6 +19,7 @@ class Config:
         self._validate_repository()
         self._validate_version()
         self._validate_max_depth()
+        self._validate_output()
     
     def _validate_package_name(self):
         if not self.package_name or not isinstance(self.package_name, str):
@@ -49,6 +51,14 @@ class Config:
         if self.max_depth > 100:
             raise ValueError("Максимальная глубина не может превышать 100")
     
+    def _validate_output(self):
+        if self.output and not isinstance(self.output, str):
+            raise ValueError("Имя выходного файла должно быть строкой")
+        if self.output:
+            invalid_chars = set('/\\:*?"<>|')
+            if any(char in self.output for char in invalid_chars):
+                raise ValueError("Имя файла содержит недопустимые символы")
+    
     def to_dict(self) -> Dict[str, Any]:
         return {
             'package_name': self.package_name,
@@ -56,5 +66,6 @@ class Config:
             'test_mode': self.test_mode,
             'version': self.version,
             'max_depth': self.max_depth,
-            'reverse': self.reverse
+            'reverse': self.reverse,
+            'output': self.output
         }

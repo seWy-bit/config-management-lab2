@@ -13,6 +13,7 @@ def parse_arguments() -> Dict[str, Any]:
     parser.add_argument('--version', type=str, default='latest', help='Версия пакета')
     parser.add_argument('--max-depth', type=int, default=10, help='Максимальная глубина')
     parser.add_argument('--reverse', action='store_true', help='Режим вывода обратных зависимостей')
+    parser.add_argument('--output', type=str, help='Имя файла для сохранения визуализации (без расширения)')
     
     args = parser.parse_args()
     
@@ -22,5 +23,6 @@ def parse_arguments() -> Dict[str, Any]:
         'test_mode': args.test_mode,
         'version': args.version,
         'max_depth': args.max_depth,
-        'reverse': args.reverse
+        'reverse': args.reverse,
+        'output': args.output
     }
